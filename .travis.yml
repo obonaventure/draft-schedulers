@@ -1,0 +1,10 @@
+install: 
+ - gem install kramdown-rfc2629
+ - sudo apt-get install xml2rfc
+ - sudo apt-get install nodejs npm
+ - sudo apt install nodejs-legacy
+ - sudo npm i markdown-spellcheck -g
+ - sudo apt-get install hunspell hunspell-en-us
+language: ruby
+# command to run tests
+script: make

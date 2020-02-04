@@ -1,0 +1,85 @@
+---
+title: Multipath QUIC schedulers
+abbrev: Multipath QUIC schedulers
+docname: draft-bla-mpquic-schedulers
+date: 2020-01-30
+category: exp
+
+ipr: trust200902
+area: IRTF
+workgroup: ICCRG Working Group
+keyword: Internet-Draft
+
+coding: us-ascii
+stand_alone: yes
+pi: [toc, sortrefs, symrefs]
+
+author:
+ -
+  ins: O. Bonaventure
+  name: Olivier Bonaventure
+  organization: UCLouvain
+  email: Olivier.Bonaventure@uclouvain.be
+ -
+  ins: M. Piraux
+  name: Maxime Piraux
+  organization: UCLouvain
+  email: Maxime.Piraux@uclouvain.be
+ -
+  ins: M. Baerts
+  name: Matthieu Baerts
+  organization: Tessares
+  email: Matthieu.Baerts@tessares.net
+ -            
+  ins: C. Paasch
+  name: Christoph Paasch
+  organization: Apple
+  email: cpaasch@apple.com
+
+normative:
+  RFC6824:
+  RFC2119:
+  RFC8174:
+
+informative:
+  TS23501:
+    author:
+      - ins: 3GPP (3rd Generation Partnership Project)
+    title: Technical Specification Group Services and System Aspects; System Architecture for the 5G System; Stage 2 (Release 16)
+    date: 2019
+    target: https://www.3gpp.org/ftp/Specs/archive/23_series/23.501/
+  IETFJ16:
+    author:
+      - ins: O. Bonaventure
+      - ins: S. Seo
+    title: Multipath TCP Deployment
+    seriesinfo: IETF Journal, Fall 2016
+
+--- abstract
+
+This document proposes a series of abstract packet schedulers for
+multipath transport.
+
+--- middle
+
+
+# Introduction  {#intro}
+
+
+
+# Conventions and Definitions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in BCP 14 
+{{RFC2119}}{{RFC8174}} when, and only when, they appear in all capitals,
+as shown here.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ASCII figure
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-ascii title="A simple figure"}
+
