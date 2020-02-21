@@ -25,6 +25,11 @@ author:
   name: Maxime Piraux
   organization: UCLouvain
   email: Maxime.Piraux@uclouvain.be
+  -
+  ins: Q. De Coninck
+  name: Quentin De Coninck
+  organization: UCLouvain
+  email: quentin.deconinck@uclouvain.be
  -
   ins: M. Baerts
   name: Matthieu Baerts
@@ -115,7 +120,7 @@ simultaneously use them during the connection. Many path managers have been
 proposed in the literature {{TODO}}, but these are outside the scope of this
 document.
 
-[comment]: # (It would probably make sense to write such a document on path managers as well)
+[comment]: # (OB: It would probably make sense to write such a document on path managers as well)
 
 
 The packet scheduler is the generic term for the algorithm that selects the
@@ -144,16 +149,15 @@ transport protocols in companion drafts {{TODO}}.
 
 For simplicity, we assume a multipath transport protocol which can send packets
 over different paths. Some protocols such as Multipath TCP {{RFC6824}} support
-path prioritization with active and backup paths. We do not assume this in this
+active and backup paths. We do not assume this in this
 document and leave the impact of these active/backup paths in specific
-documents. Furthermore, we assume that there are exactly two active paths for
+documents.
+
+Furthermore, we assume that there are exactly two active paths for
 the presentation of the packet schedulers. We consider that a path is active as
 long as it supports the transmission of packets. A Multipath TCP subflow over
 which any of the FIN or RST flags were set is not considered as an active path.
-We try to keep the presentation generic to support more than two paths, but do
-not do this when this increases the complexity of the presentation.
 
-[comment]: # (QDC: Don't understand the last sentence of previous paragraph)
 
 We assume that the transport protocol maintains one congestion controller per
 path as in {{RFC6356}}. We do not assume a specific congestion controller,
@@ -162,21 +166,17 @@ a packet of length l would be blocked or not by the congestion control scheme.
 A window-based congestion controller such as {{RFC6356}} can block a packet
 from being transmitted for some time when its congestion window is full. The
 same applies to a rate-based congestion controller although the latter could
-indicate when the packet could be accepted while the former cannot. We simply
-assume a binary answer from the congestion controller in this document.
-
-[comment]: # (QDC: Don't understand the before-last sentence of previous paragraph)
-
-[comment]: # (QDC: For the next paragraph, should we assume constant MSS between paths?)
+indicate when the packet could be accepted while the former cannot. 
 
 We assume that the multipath transport protocol maintains some state at the
 connection level and at the path level. At the connection level, a reliable
 transport protocol will maintain send and receive windows, and a Maximum
-Segment Size. It may also contain some information that is specific to the
+Segment Size that is negotiated at connection establishment. 
+It may also contain some information that is specific to the
 application (e.g. total amount of data sent or received) and information about
 non-active flows. At the path level, we expect that the multipath transport
 protocol will maintain a accurate estimation of the round-trip-time over that
-path, possibly a send/receive window, Path MTU information, the state of the
+path, possibly a send/receive window, per path MTU information, the state of the
 congestion controller, and optionally information that is specific to the
 application or the packet scheduler (e.g. priority for one path over another
 one). 
@@ -199,16 +199,11 @@ different types of packets:
 
  - packets that carry new user data
  - packets that carry previously transmitted user data
- - packets that only carry control information (e.g., acknowledgements)
+ - packets that only carry control information (e.g., acknowledgements, address advertisements)
 
-[comment]: # (QDC: A MPTCP packet can also carry data and ack, no?)
-
-In Multipath TCP, the distinction between the packets that carry data and those
-that only carry acknowledgements is simple. Multipath TCP will typically return
-acknowledgements on the same path as the one over which data packets were
-received. For Multipath QUIC, the situation is different since a QUIC packet
-can carry both data and acknowledgements. Furthermore, Multipath QUIC can
-acknowledge over one path data that was previously received over another path.
+In Multipath TCP, the packet scheduler is only used for packets that carry data.Multipath TCP will typically return acknowledgements on the same path as the one over which data packets were
+received. For Multipath QUIC, the situation is different since Multipath QUIC
+can acknowledge over one path data that was previously received over another path.
 In Multipath TCP, this is only partially possible. The subflow level
 acknowledgements must be sent on the subflow where the data was received while
 the data-level acknowledgements can be sent over any subflow.
@@ -246,11 +241,17 @@ window is open.
 
 ## Strict Priority
 
-[comment]: # (Path 0 has a higher priority than path one, with congestion window)
+[comment]: # (OB: Path 0 has a higher priority than path one, with congestion window)
 
 ## Delay threshold
 
-[comment]: # (Path 0 has a higher priority than path one, path one is used if packets has been delayed by more than threshold in transport entity)
+[comment]: # (OB: Path 0 has a higher priority than path one, path one is used if packets has been delayed by more than threshold in transport entity)
+
+
+## Lowest round-trip-time first
+
+[comment]: # (OB: always send data over the path with the lowest rtt)
+
 
 
 
