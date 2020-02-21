@@ -74,8 +74,8 @@ multipath transport.
 # Introduction  {#intro}
 
 The Internet was designed under the implicit assumption that hosts are
-equipped with a single interface while routers are equipped with several
-network interfaces. Under this assumption, an Internet host is usually
+equipped with a single network interface while routers are equipped with several
+ones. Under this assumption, an Internet host is usually
 identified by the IP address of its network interface.
 
 This assumption does not hold anymore today for two reasons. First,
@@ -83,29 +83,37 @@ a growing fraction of the Internet hosts are equipped with several network
 interfaces, usually through different datalink networks. These multihomed
 hosts are reachable via different IP addresses. Second, a growing
 fraction of the hosts that are attached through a single network interface are
-dual-stack and are thus reachable over IPv4 and IPv6. 
+dual-stack and are thus reachable over both IPv4 and IPv6. 
 
 Several Internet transport protocols have been extended to leverage the
-different paths that are exposed on such hosts: Multipath TCP {{RFC6824}}, the load sharing extensions to SCTP {{I-D.tuexen-tsvwg-sctp-multipath}} and Multipath QUIC {{I-D.deconinck-quic-multipath}}. These multipath transport protocols differ in the way they are organized and exchange control information and user data. However, they all include algorithms to handle three problems that any multipath transport protocol needs to solve:
+different paths that are exposed on such hosts: Multipath TCP {{RFC6824}}, the
+load sharing extensions to SCTP {{I-D.tuexen-tsvwg-sctp-multipath}} and
+Multipath QUIC {{I-D.deconinck-quic-multipath}}. These multipath transport
+protocols differ in the way they are organized and exchange control information
+and user data. However, they all include algorithms to handle three problems
+that any multipath transport protocol needs to solve:
 
  - Congestion controller
- - Path Manager
+ - Path manager
  - Packet scheduler
 
-From a congestion control viewpoint, the main concern for a multipath transport protocol is that a multipath connection should not be unfair to single-path
+From a congestion control viewpoint, the main concern for a multipath transport
+protocol is that a multipath connection should not be unfair to single-path
 transport connections that share a common bottleneck. This problem can be solved
-by coupling the congestion windows of the different paths. The solution proposed in {{RFC6356}} is applicable to any transport protocol.
+by coupling the congestion windows of the different paths. The solution proposed
+in {{RFC6356}} is applicable to any transport protocol.
 
 A multipath transport protocol uses different flows during the lifetime of a
-connection. The Path Manager contains the logic that manages the
+connection. The Path Manager contains the logic that regulates the
 creation/deletion of these flows. This logic usually depends on the
 requirements of the application that uses the multipath transport. Some
 applications use multipath in failover situations. In this case, the connection
 can use one path and the path manager can create another path when the primary
 one fails. An application that wishes to share its load among different paths
-can request the path manager to establish different paths and then use them
-during the connection. Many path managers have been proposed in the literature
-{{TODO}}, but these are outside the scope of this document.
+can request the path manager to establish different paths in order to
+simultaneously use them during the connection. Many path managers have been
+proposed in the literature {{TODO}}, but these are outside the scope of this
+document.
 
 [comment]: # (It would probably make sense to write such a document on path managers as well)
 
@@ -122,51 +130,56 @@ such protocols.
 In this document, we document a series of multipath packet schedulers that
 are known to provide performance that matches well the requirements of specific
 applications. To describe these packet schedulers, we assume an
-abstract transport that is briefly presented in Section {{abstract}}. We then
-describe the different schedulers in Section {{schedulers}}. To keep the
-description as simple and intuitive as possible, we assume multipath
-connections that are composed of two paths, a frequent deployment scenario
-for multipath transport. This does not restrict the proposed schedulers to
-using only two paths. Implementations are encouraged to support more than
-2 paths. We leave the discussion on how to adapt these abstract schedulers to
-concrete multipath transport protocols 
+abstract transport that is briefly presented in {{abstract}}. We then describe
+the different schedulers in {{schedulers}}. To keep the description as simple
+and intuitive as possible, we assume here multipath connections that are
+composed of two paths, a frequent deployment scenario for multipath transport.
+This does not restrict the proposed schedulers to using only two paths.
+Implementations are encouraged to support more than 2 paths. We leave the
+discussion on how to adapt these abstract schedulers to concrete multipath
+transport protocols in companion drafts {{TODO}}.
 
 
 # An abstract multipath transport protocol {#abstract}
 
 For simplicity, we assume a multipath transport protocol which can send packets
 over different paths. Some protocols such as Multipath TCP {{RFC6824}} support
-active and backup paths. We do not assume this in this document and leave
-the impact of these active/backup paths in specific documents. Furthermore,
-we assume that there are exactly two active paths for the presentation of
-the packet schedulers. We consider that a path is active as long as
-it supports the transmission of packets. A Multipath TCP subflow over which
-the FIN flag was set is not considered as an active path.
-We try to keep the presentation generic to support more
-than two paths, but do not do this when this increases the complexity of the
-presentation.
+path prioritization with active and backup paths. We do not assume this in this
+document and leave the impact of these active/backup paths in specific
+documents. Furthermore, we assume that there are exactly two active paths for
+the presentation of the packet schedulers. We consider that a path is active as
+long as it supports the transmission of packets. A Multipath TCP subflow over
+which any of the FIN or RST flags were set is not considered as an active path.
+We try to keep the presentation generic to support more than two paths, but do
+not do this when this increases the complexity of the presentation.
 
-We assume that the transport protocol maintains uses one congestion controller
-per path as in {{RFC6356}}. We do not assume a specific congestion controller,
+[comment]: # (QDC: Don't understand the last sentence of previous paragraph)
+
+We assume that the transport protocol maintains one congestion controller per
+path as in {{RFC6356}}. We do not assume a specific congestion controller,
 but assume that it can be queried by the packet scheduler to verify whether
 a packet of length l would be blocked or not by the congestion control scheme.
 A window-based congestion controller such as {{RFC6356}} can block a packet
-from being transmitted for some time when its congestion window is full. The same applies to a rate-based congestion controller although the latter could
+from being transmitted for some time when its congestion window is full. The
+same applies to a rate-based congestion controller although the latter could
 indicate when the packet could be accepted while the former cannot. We simply
 assume a binary answer from the congestion controller in this document.
 
-We assume that the multipath transport protocol maintains some state
-at the connection level and at the path level. At the connection level, a
-reliable transport protocol will maintain send and receive windows, and
-a Maximum Segment Size. It may also contain some information that is
-specific to the application (e.g. total amount of data sent or received),
-information about non-active flows. At the path level, we expect that the
-multipath transport protocol will maintain a accurate estimation of the
-round-trip-time over that path, possibly a send/receive window, Path MTU
-information, the state of the congestion controller, and
-optionally information that is specific to the application or the packet
-scheduler (e.g. priority for one path over another one). 
+[comment]: # (QDC: Don't understand the before-last sentence of previous paragraph)
 
+[comment]: # (QDC: For the next paragraph, should we assume constant MSS between paths?)
+
+We assume that the multipath transport protocol maintains some state at the
+connection level and at the path level. At the connection level, a reliable
+transport protocol will maintain send and receive windows, and a Maximum
+Segment Size. It may also contain some information that is specific to the
+application (e.g. total amount of data sent or received) and information about
+non-active flows. At the path level, we expect that the multipath transport
+protocol will maintain a accurate estimation of the round-trip-time over that
+path, possibly a send/receive window, Path MTU information, the state of the
+congestion controller, and optionally information that is specific to the
+application or the packet scheduler (e.g. priority for one path over another
+one). 
 
 [comment]: # (To be continued and updated)
 
@@ -180,15 +193,18 @@ as shown here.
 
 # Packet schedulers {#schedulers}
 
-The Round Robin scheduler is executed every time a packet needs to be
-transmitted by the multipath transport protocol. A packet scheduler can
-consider three different types of packets:
+The packet scheduler is executed every time a packet needs to be transmitted
+by the multipath transport protocol. A packet scheduler can consider three
+different types of packets:
 
  - packets that carry new user data
  - packets that carry previously transmitted user data
- - packets that only carry control information (acknowledgements)
- 
-In Multipath TCP, the distinction between the packets that carry data and those that only carry acknowledgements is simple. Multipath TCP will typically return
+ - packets that only carry control information (e.g., acknowledgements)
+
+[comment]: # (QDC: A MPTCP packet can also carry data and ack, no?)
+
+In Multipath TCP, the distinction between the packets that carry data and those
+that only carry acknowledgements is simple. Multipath TCP will typically return
 acknowledgements on the same path as the one over which data packets were
 received. For Multipath QUIC, the situation is different since a QUIC packet
 can carry both data and acknowledgements. Furthermore, Multipath QUIC can
@@ -204,8 +220,10 @@ We use the Round-Robin scheduler as a simple example to illustrate how a packet
 scheduler can be specified, but do not recommend its usage. Experiments with
 Multipath TCP {{TODO}} indicate that it does not provide good performance.
 
-This packet scheduler uses one additional state at the connection level: last_path. This stores the identifier of the last path that was used to send a packet. We assume that the paths are identified by an integer. The scheduler is defined
-by the pseudocode shown in {{fig-rr}}.
+This packet scheduler uses one additional state at the connection level:
+last_path. This stores the identifier of the last path that was used to send a
+packet. We assume that the paths are identified by an integer. The scheduler is
+defined by the pseudocode shown in {{fig-rr}}.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
