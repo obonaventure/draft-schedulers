@@ -257,10 +257,10 @@ the other paths. It is thus crucial to schedule the traffic on a path such that
 the latency requirements of the application are satisfied.
 
 Achieving high throughput is another goal of many applications. Streaming applications
-often require a minimum bitrate to sustain playback. The scheduler should try to
-achieve this bitrate to allow for a flawless streaming experience. Beyond that,
+often require a minimum bit rate to sustain playback. The scheduler should try to
+achieve this bit rate to allow for a flawless streaming experience. Beyond that,
 adaptive streaming requires also a more stable throughput experience to ensure
-that the bitrate of the video stream is consistent.
+that the bit rate of the video stream is consistent.
 
 Finally, transport protocols impose a receive-window that signals to the sender
 how much data the application is willing to receive. When the paths have a large
@@ -341,7 +341,7 @@ window is open.
 The Lowest round-trip-time first scheduler's goal is to minimize latency for
 short flows while at the same time achieving high throughput for long flows {{ACMCS14}}.
 To handle the latency differences across the paths when being limited by the
-receive-window, this scheduler deploys a fast-reinjection mechanism to quickly
+receive-window, this scheduler deploys a fast reinjection mechanism to quickly
 recover from the head-of-line blocking.
 
 At each round, the scheduler iterates over the list of paths that are eligible
