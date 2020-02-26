@@ -25,7 +25,7 @@ author:
   name: Maxime Piraux
   organization: UCLouvain
   email: Maxime.Piraux@uclouvain.be
-  -
+ -
   ins: Q. De Coninck
   name: Quentin De Coninck
   organization: UCLouvain
@@ -40,6 +40,11 @@ author:
   name: Christoph Paasch
   organization: Apple
   email: cpaasch@apple.com
+ -            
+  ins: M. Amend
+  name: Markus Amend
+  organization: Deutsche Telekom
+  email: markus.amend@telekom.de
 
 normative:
 
@@ -50,6 +55,7 @@ informative:
   RFC6356:
   I-D.tuexen-tsvwg-sctp-multipath:
   I-D.deconinck-quic-multipath:
+  I-D.amend-tsvwg-multipath-dccp:
   TS23501:
     author:
       - ins: 3GPP (3rd Generation Partnership Project)
@@ -91,7 +97,7 @@ informative:
 --- abstract
 
 This document proposes a series of abstract packet schedulers for
-multipath transport.
+multipath transport protocols equipped with a congestion controller.
 
 --- middle
 
@@ -112,7 +118,8 @@ dual-stack and are thus reachable over both IPv4 and IPv6.
 
 Several Internet transport protocols have been extended to leverage the
 different paths that are exposed on such hosts: Multipath TCP {{RFC6824}}, the
-load sharing extensions to SCTP {{I-D.tuexen-tsvwg-sctp-multipath}} and
+load sharing extensions to SCTP {{I-D.tuexen-tsvwg-sctp-multipath}}, Multipath 
+DCCP {{I-D.amend-tsvwg-multipath-dccp}} and
 Multipath QUIC {{I-D.deconinck-quic-multipath}}. These multipath transport
 protocols differ in the way they are organized and exchange control information
 and user data. However, they all include algorithms to handle three problems
@@ -121,12 +128,16 @@ that any multipath transport protocol needs to solve:
  - Congestion controller
  - Path manager
  - Packet scheduler
+ - Packet re-assembly
 
 From a congestion control viewpoint, the main concern for a multipath transport
 protocol is that a multipath connection should not be unfair to single-path
 transport connections that share a common bottleneck. This problem can be solved
 by coupling the congestion windows of the different paths. The solution proposed
-in {{RFC6356}} is applicable to any transport protocol.
+in {{RFC6356}} is applicable to any transport protocol. Beside providing fairness, 
+congestion control can also be a valuable input for different kind of traffic
+distribution algorithm within a packet scheduler. Typically metrics like RTT and
+available capacity can be derived.
 
 A multipath transport protocol uses different flows during the lifetime of a
 connection. The Path Manager contains the logic that regulates the
@@ -140,7 +151,7 @@ simultaneously use them during the connection. Many path managers have been
 proposed in the literature {{TODO}}, but these are outside the scope of this
 document.
 
-[comment]: # (OB: It would probably make sense to write such a document on path managers as well)
+[comment]: # (OB: It would probably make sense to write such a document on path managers as well; MA: Agree)
 
 
 The packet scheduler is the generic term for the algorithm that selects the
@@ -151,6 +162,15 @@ been proposed in the literature {{TODO}} and implemented in multipath transport
 protocols. Experience with multipath transport protocols shows that the
 packet scheduler can have a huge impact on the performance achieved by
 such protocols.
+
+Packet re-assembly or re-ordering in multipath transport has the functionality
+to equalize the effect of packet scheduling across paths with different
+characteristics and restore the original packet order to a certain extent. Obviously, 
+packet re-assembly is the counterpart of packet scheduling and located at the 
+far end of the multipath transport. However, packet scheduling schemes exists 
+which render the re-assembly superfluous or lowering at least its effort.
+
+[comment]: # (MA: It would probably make sense to write such a document on packet re-assembly as well. This becomes crucial for any unreliable MP protocol.)
 
 In this document, we document a series of multipath packet schedulers that
 are known to provide performance that matches well the requirements of specific
@@ -178,6 +198,8 @@ the presentation of the packet schedulers. We consider that a path is active as
 long as it supports the transmission of packets. A Multipath TCP subflow over
 which any of the FIN or RST flags were set is not considered as an active path.
 
+[comment]: # (MA: What about RTO?)
+
 
 We assume that the transport protocol maintains one congestion controller per
 path as in {{RFC6356}}. We do not assume a specific congestion controller,
@@ -189,9 +211,13 @@ same applies to a rate-based congestion controller although the latter could
 indicate when the packet could be accepted while the former cannot.
 
 We assume that the multipath transport protocol maintains some state at the
-connection level and at the path level. At the connection level, a reliable
+connection level and at the path level. On both level, the multipath
 transport protocol will maintain send and receive windows, and a Maximum
-Segment Size that is negotiated at connection establishment.
+Segment Size that is negotiated at connection establishment. 
+
+[comment]: # (MA: Linking send and rcv window to a reliable protocol is misleading for MP-QUIC and Datagram or MP-DCCP. Also do not considering path level and linking to connection level only will prevent any path scheduling)
+
+
 It may also contain some information that is specific to the
 application (e.g. total amount of data sent or received) and information about
 non-active flows. At the path level, we expect that the multipath transport
@@ -262,8 +288,7 @@ different types of packets:
  - packets that carry previously transmitted user data
  - packets that only carry control information (e.g., acknowledgements, address advertisements)
 
-In Multipath TCP, the packet scheduler is only used for packets that carry data.
-Multipath TCP will typically return acknowledgements on the same path as the one over which data packets were
+In Multipath TCP, the packet scheduler is only used for packets that carry data. Multipath TCP will typically return acknowledgements on the same path as the one over which data packets were
 received. For Multipath QUIC, the situation is different since Multipath QUIC
 can acknowledge over one path data that was previously received over another path.
 In Multipath TCP, this is only partially possible. The subflow level
@@ -312,6 +337,7 @@ window is open.
 
 ## Lowest round-trip-time first
 
+
 The Lowest round-trip-time first scheduler's goal is to minimize latency for
 short flows while at the same time achieving high throughput for long flows {{ACMCS14}}.
 To handle the latency differences across the paths when being limited by the
@@ -348,6 +374,13 @@ This mechanism is called penalization and is achieved by dividing the congestion
 window by 2.
 
 [comment]: # (CP: pseudocode)
+
+
+## Out-of-order transmission for in-order arrival 
+
+[comment]: # (MA: overload fastest path to match latency of slower path; avoids ideally re-ordering)
+
+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
