@@ -3,6 +3,11 @@
 # global dictionary is at the start, file overrides afterwards
 # one word per line, to define a file override use ' - filename'
 # where filename is relative to this configuration file
+Markus
+Amend
+Deutsche
+Telekom
+Coninck
 docname
 docname
 ipr
@@ -31,6 +36,7 @@ IPv4
 IPv6
 tuexen-tsvwg-sctp-multipath
 deconinck-quic-multipath
+amend-tsvwg-multipath-dccp
 datalink
 multihomed
 failover
@@ -39,3 +45,8 @@ e.g.
 last_path
 pseudocode
 fig-rr
+ - draft-schedulers.mkd
+rcv
+MP-QUIC
+Datagram
+MP-DCCP
