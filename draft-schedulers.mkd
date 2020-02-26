@@ -88,7 +88,7 @@ a growing fraction of the Internet hosts are equipped with several network
 interfaces, usually through different datalink networks. These multihomed
 hosts are reachable via different IP addresses. Second, a growing
 fraction of the hosts that are attached through a single network interface are
-dual-stack and are thus reachable over both IPv4 and IPv6. 
+dual-stack and are thus reachable over both IPv4 and IPv6.
 
 Several Internet transport protocols have been extended to leverage the
 different paths that are exposed on such hosts: Multipath TCP {{RFC6824}}, the
@@ -166,12 +166,12 @@ a packet of length l would be blocked or not by the congestion control scheme.
 A window-based congestion controller such as {{RFC6356}} can block a packet
 from being transmitted for some time when its congestion window is full. The
 same applies to a rate-based congestion controller although the latter could
-indicate when the packet could be accepted while the former cannot. 
+indicate when the packet could be accepted while the former cannot.
 
 We assume that the multipath transport protocol maintains some state at the
 connection level and at the path level. At the connection level, a reliable
 transport protocol will maintain send and receive windows, and a Maximum
-Segment Size that is negotiated at connection establishment. 
+Segment Size that is negotiated at connection establishment.
 It may also contain some information that is specific to the
 application (e.g. total amount of data sent or received) and information about
 non-active flows. At the path level, we expect that the multipath transport
@@ -179,7 +179,7 @@ protocol will maintain a accurate estimation of the round-trip-time over that
 path, possibly a send/receive window, per path MTU information, the state of the
 congestion controller, and optionally information that is specific to the
 application or the packet scheduler (e.g. priority for one path over another
-one). 
+one).
 
 [comment]: # (To be continued and updated)
 
@@ -187,7 +187,7 @@ one).
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in BCP 14 
+"OPTIONAL" in this document are to be interpreted as described in BCP 14
 {{RFC2119}}{{RFC8174}} when, and only when, they appear in all capitals,
 as shown here.
 
@@ -201,7 +201,8 @@ different types of packets:
  - packets that carry previously transmitted user data
  - packets that only carry control information (e.g., acknowledgements, address advertisements)
 
-In Multipath TCP, the packet scheduler is only used for packets that carry data.Multipath TCP will typically return acknowledgements on the same path as the one over which data packets were
+In Multipath TCP, the packet scheduler is only used for packets that carry data.
+Multipath TCP will typically return acknowledgements on the same path as the one over which data packets were
 received. For Multipath QUIC, the situation is different since Multipath QUIC
 can acknowledge over one path data that was previously received over another path.
 In Multipath TCP, this is only partially possible. The subflow level
@@ -230,7 +231,7 @@ begin:
         send packet over last_path
   else:
         goto begin: # try next path
-        
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-rr title="A simple Round Robin scheduler"}
 
