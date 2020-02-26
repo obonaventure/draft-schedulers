@@ -35,7 +35,7 @@ author:
   name: Matthieu Baerts
   organization: Tessares
   email: Matthieu.Baerts@tessares.net
- -            
+ -
   ins: C. Paasch
   name: Christoph Paasch
   organization: Apple
@@ -52,7 +52,7 @@ informative:
   RFC6824:
   RFC2119:
   RFC8174:
-  RFC6356:        
+  RFC6356:
   I-D.tuexen-tsvwg-sctp-multipath:
   I-D.deconinck-quic-multipath:
   I-D.amend-tsvwg-multipath-dccp:
@@ -68,6 +68,26 @@ informative:
       - ins: S. Seo
     title: Multipath TCP Deployment
     seriesinfo: IETF Journal, Fall 2016
+  ACMCS14:
+    author:
+     - ins: C. Paasch
+     - ins: S. Ferlin
+     - ins: O. Alay
+     - ins: O. Bonaventure
+    title: Experimental Evaluation of Multipath TCP Schedulers
+    seriesinfo: Proceedings of the 2014 ACM SIGCOMM workshop on Capacity sharing workshop
+  NSDI12:
+    author:
+     - ins: C. Raiciu
+     - ins: C. Paasch
+     - ins: S. Barre
+     - ins: A. Ford
+     - ins: M. Honda
+     - ins: F. Duchene
+     - ins: O. Bonaventure
+     - ins: M. Handley
+    title: How Hard Can It Be? Designing and Implementing a Deployable Multipath TCP
+    seriesinfo: 9th USENIX Symposium on Networked Systems Design and Implementation (NSDI 12)
   TODO:
     author:
      - ins: To be provided
@@ -94,7 +114,7 @@ a growing fraction of the Internet hosts are equipped with several network
 interfaces, usually through different datalink networks. These multihomed
 hosts are reachable via different IP addresses. Second, a growing
 fraction of the hosts that are attached through a single network interface are
-dual-stack and are thus reachable over both IPv4 and IPv6. 
+dual-stack and are thus reachable over both IPv4 and IPv6.
 
 Several Internet transport protocols have been extended to leverage the
 different paths that are exposed on such hosts: Multipath TCP {{RFC6824}}, the
@@ -188,7 +208,7 @@ a packet of length l would be blocked or not by the congestion control scheme.
 A window-based congestion controller such as {{RFC6356}} can block a packet
 from being transmitted for some time when its congestion window is full. The
 same applies to a rate-based congestion controller although the latter could
-indicate when the packet could be accepted while the former cannot. 
+indicate when the packet could be accepted while the former cannot.
 
 We assume that the multipath transport protocol maintains some state at the
 connection level and at the path level. On both level, the multipath
@@ -197,6 +217,7 @@ Segment Size that is negotiated at connection establishment.
 
 [comment]: # (MA: Linking send and rcv window to a reliable protocol is misleading for MP-QUIC and Datagram or MP-DCCP. Also do not considering path level and linking to connection level only will prevent any path scheduling)
 
+
 It may also contain some information that is specific to the
 application (e.g. total amount of data sent or received) and information about
 non-active flows. At the path level, we expect that the multipath transport
@@ -204,7 +225,7 @@ protocol will maintain a accurate estimation of the round-trip-time over that
 path, possibly a send/receive window, per path MTU information, the state of the
 congestion controller, and optionally information that is specific to the
 application or the packet scheduler (e.g. priority for one path over another
-one). 
+one).
 
 [comment]: # (To be continued and updated)
 
@@ -212,9 +233,50 @@ one).
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in BCP 14 
+"OPTIONAL" in this document are to be interpreted as described in BCP 14
 {{RFC2119}}{{RFC8174}} when, and only when, they appear in all capitals,
 as shown here.
+
+# Packet scheduling challenges {#challenges}
+
+Packet scheduling tries to balance different quality of service goals with
+different constraints of the paths. The balance depends on which of the goals
+or constraints is the primary factor for the experience the application is
+aiming for. In the following we list these goals and constraints and conclude
+by how they can influence each other.
+
+Each path can be subject to a different cost when transmitting data. For example,
+a path can introduce a per-byte monetary cost for the transmission (e.g., metered
+cellular link). Another cost can be the power consumption when transmitting or
+receiving data. These costs are imposing restrictions on when a path can be used
+compared to the lower-cost path.
+
+A goal for many applications is to reduce the latency of their transaction. With
+multiple paths, each path can have a significantly different latency compared to
+the other paths. It is thus crucial to schedule the traffic on a path such that
+the latency requirements of the application are satisfied.
+
+Achieving high throughput is another goal of many applications. Streaming applications
+often require a minimum bitrate to sustain playback. The scheduler should try to
+achieve this bitrate to allow for a flawless streaming experience. Beyond that,
+adaptive streaming requires also a more stable throughput experience to ensure
+that the bitrate of the video stream is consistent.
+
+Finally, transport protocols impose a receive-window that signals to the sender
+how much data the application is willing to receive. When the paths have a large
+latency difference, a multipath transport can quickly become receive-window limited.
+This limitation comes from the fact that a packet might have been sent on a
+high-latency path. If the transport imposes in-order delivery of the data, the
+receiver needs to wait to receive this packet over the high-latency path before
+providing it to the application. The sender will thus become receive-window limited
+and may end up under-utilizing the low-latency path. This can become a major
+challenge when trying to achieve high throughput.
+
+
+All of these quality of service goals and constraints need to be balanced against
+each other. A scheduler might decide to trade latency for higher throughput. Or
+reduce the throughput with the goal of reducing the cost.
+
 
 # Packet schedulers {#schedulers}
 
@@ -238,7 +300,7 @@ the data-level acknowledgements can be sent over any subflow.
 
 We use the Round-Robin scheduler as a simple example to illustrate how a packet
 scheduler can be specified, but do not recommend its usage. Experiments with
-Multipath TCP {{TODO}} indicate that it does not provide good performance.
+Multipath TCP {{ACMCS14}} indicate that it does not provide good performance.
 
 This packet scheduler uses one additional state at the connection level:
 last_path. This stores the identifier of the last path that was used to send a
@@ -255,7 +317,7 @@ begin:
         send packet over last_path
   else:
         goto begin: # try next path
-        
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-rr title="A simple Round Robin scheduler"}
 
@@ -275,12 +337,49 @@ window is open.
 
 ## Lowest round-trip-time first
 
-[comment]: # (OB: always send data over the path with the lowest rtt)
+
+The Lowest round-trip-time first scheduler's goal is to minimize latency for
+short flows while at the same time achieving high throughput for long flows {{ACMCS14}}.
+To handle the latency differences across the paths when being limited by the
+receive-window, this scheduler deploys a fast-reinjection mechanism to quickly
+recover from the head-of-line blocking.
+
+At each round, the scheduler iterates over the list of paths that are eligible
+for transmission. To decide whether or not a path a few conditions need to be
+satisfied:
+
+ - The congestion window needs to provide enough space for the segment
+ - The path is not in fast-recovery or experiencing retransmission timeouts
+
+Among all the eligible paths, the scheduler will choose the path with the
+lowest RTT and transmit the segment with the new data on that path.
+
+To handle head-of-line blocking situations when the paths have a large delay
+difference the scheduler uses a strategy of opportunistic retransmission and
+path penalization as described in {{NSDI12}.
+
+Opportunistic retransmission kicks in whenever a path is eligible for transmission
+but the receive-window advertised by the receiver prevents the sender from transmitting
+new data. In that case the sender can transmit previously transmitted data over the
+eligible path. To overcome the head-of-line blocking the sender will thus transmit
+the packet at the head of the transmission queue over this faster path (if it
+hasn't been transmitted on this particular path yet). This packet has thus a
+chance to quickly reach the receiver and fill the hole created by the head-of-line
+blocking.
+
+Whenever the previously mentioned mechanism kicks in, it is and indication that
+the path's round-trip-time is too high to allow the path with the lower RTT to
+fully use its capacity. We thus should reduce the transmission rate on this path.
+This mechanism is called penalization and is achieved by dividing the congestion
+window by 2.
+
+[comment]: # (CP: pseudocode)
 
 
 ## Out-of-order transmission for in-order arrival 
 
 [comment]: # (MA: overload fastest path to match latency of slower path; avoids ideally re-ordering)
+
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
