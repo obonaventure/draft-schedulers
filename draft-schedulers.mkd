@@ -40,7 +40,7 @@ author:
   name: Christoph Paasch
   organization: Apple
   email: cpaasch@apple.com
- -            
+ -
   ins: M. Amend
   name: Markus Amend
   organization: Deutsche Telekom
@@ -88,6 +88,15 @@ informative:
      - ins: M. Handley
     title: How Hard Can It Be? Designing and Implementing a Deployable Multipath TCP
     seriesinfo: 9th USENIX Symposium on Networked Systems Design and Implementation (NSDI 12)
+  CONEXT15:
+    author:
+     - ins: B. Hesmans
+     - ins: G. Detal
+     - ins: S. Barre
+     - ins: R. Bauduin
+     - ins: O. Bonaventure
+    title: SMAPP &#58; Towards Smart Multipath TCP-enabled APPlications
+    seriesinfo: CoNEXT '15&#58; Proceedings of the 11th ACM Conference on Emerging Networking Experiments and Technologies
   TODO:
     author:
      - ins: To be provided
@@ -118,7 +127,7 @@ dual-stack and are thus reachable over both IPv4 and IPv6.
 
 Several Internet transport protocols have been extended to leverage the
 different paths that are exposed on such hosts: Multipath TCP {{RFC6824}}, the
-load sharing extensions to SCTP {{I-D.tuexen-tsvwg-sctp-multipath}}, Multipath 
+load sharing extensions to SCTP {{I-D.tuexen-tsvwg-sctp-multipath}}, Multipath
 DCCP {{I-D.amend-tsvwg-multipath-dccp}} and
 Multipath QUIC {{I-D.deconinck-quic-multipath}}. These multipath transport
 protocols differ in the way they are organized and exchange control information
@@ -134,7 +143,7 @@ From a congestion control viewpoint, the main concern for a multipath transport
 protocol is that a multipath connection should not be unfair to single-path
 transport connections that share a common bottleneck. This problem can be solved
 by coupling the congestion windows of the different paths. The solution proposed
-in {{RFC6356}} is applicable to any transport protocol. Beside providing fairness, 
+in {{RFC6356}} is applicable to any transport protocol. Beside providing fairness,
 congestion control can also be a valuable input for different kind of traffic
 distribution algorithm within a packet scheduler. Typically metrics like RTT and
 available capacity can be derived.
@@ -148,7 +157,7 @@ can use one path and the path manager can create another path when the primary
 one fails. An application that wishes to share its load among different paths
 can request the path manager to establish different paths in order to
 simultaneously use them during the connection. Many path managers have been
-proposed in the literature {{TODO}}, but these are outside the scope of this
+proposed in the literature {{CONEXT15}}, but these are outside the scope of this
 document.
 
 [comment]: # (OB: It would probably make sense to write such a document on path managers as well; MA: Agree)
@@ -165,9 +174,9 @@ such protocols.
 
 Packet re-assembly or re-ordering in multipath transport has the functionality
 to equalize the effect of packet scheduling across paths with different
-characteristics and restore the original packet order to a certain extent. Obviously, 
-packet re-assembly is the counterpart of packet scheduling and located at the 
-far end of the multipath transport. However, packet scheduling schemes exists 
+characteristics and restore the original packet order to a certain extent. Obviously,
+packet re-assembly is the counterpart of packet scheduling and located at the
+far end of the multipath transport. However, packet scheduling schemes exists
 which render the re-assembly superfluous or lowering at least its effort.
 
 [comment]: # (MA: It would probably make sense to write such a document on packet re-assembly as well. This becomes crucial for any unreliable MP protocol.)
@@ -197,8 +206,10 @@ Furthermore, we assume that there are exactly two active paths for
 the presentation of the packet schedulers. We consider that a path is active as
 long as it supports the transmission of packets. A Multipath TCP subflow over
 which any of the FIN or RST flags were set is not considered as an active path.
-
-[comment]: # (MA: What about RTO?)
+Other constraints are possible on whether or not a path is active. These are
+specific to the scheduler and vary depending on the goal of the scheduler. An
+example of these is that when a path has experienced a certain number N of
+retransmission timeouts, the path can be considered inactive.
 
 
 We assume that the transport protocol maintains one congestion controller per
@@ -213,7 +224,7 @@ indicate when the packet could be accepted while the former cannot.
 We assume that the multipath transport protocol maintains some state at the
 connection level and at the path level. On both level, the multipath
 transport protocol will maintain send and receive windows, and a Maximum
-Segment Size that is negotiated at connection establishment. 
+Segment Size that is negotiated at connection establishment.
 
 [comment]: # (MA: Linking send and rcv window to a reliable protocol is misleading for MP-QUIC and Datagram or MP-DCCP. Also do not considering path level and linking to connection level only will prevent any path scheduling)
 
