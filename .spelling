@@ -51,3 +51,12 @@ MP-QUIC
 Datagram
 MP-DCCP
 reinjection
+reinjections
+fig-strict-prio
+fig-delay-threshold
+fig-simple-low-rtt
+i.e.
+srtt
+cc_state
+slow_start
+congestion_avoidance
