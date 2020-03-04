@@ -53,6 +53,7 @@ informative:
   RFC2119:
   RFC8174:
   RFC6356:
+  RFC6298:
   I-D.tuexen-tsvwg-sctp-multipath:
   I-D.deconinck-quic-multipath:
   I-D.amend-tsvwg-multipath-dccp:
@@ -295,6 +296,21 @@ In Multipath TCP, this is only partially possible. The subflow level
 acknowledgements must be sent on the subflow where the data was received while
 the data-level acknowledgements can be sent over any subflow.
 
+This document uses the Python language to represent multipath schedulers. A
+multipath scheduler is represented as a Python function. This function takes the
+length of the next packet to schedule as argument and returns the path on which
+it will be send. A path is represented as a Python class with the following
+attributes:
+
+ - srtt: The smoothed RTT of the path {{RFC6298}}.
+ - cc_state: The state of the congestion controller, i.e. either slow_start,
+   congestion_avoidance or recovery.
+ - blocked(l): A function indicating whether a packet of length l would be
+   rejected by the congestion controller.
+
+The schedulers presented can be executed in a simulator {{TODO}} implementing
+the abstract multipath protocol presented in {{abstract}}. It can be used to
+simulate a file transfer between a client and a server over multiple paths.
 
 ## Round-Robin
 
@@ -305,19 +321,19 @@ Multipath TCP {{ACMCS14}} indicate that it does not provide good performance.
 This packet scheduler uses one additional state at the connection level:
 last_path. This stores the identifier of the last path that was used to send a
 packet. We assume that the paths are identified by an integer. The scheduler is
-defined by the pseudocode shown in {{fig-rr}}.
+defined by the code shown in {{fig-rr}}.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class RoundRobin(Scheduler):
+    """ Chooses an available path in a round-robin manner between two paths. """
+    last_path: Optional[Path] = None
 
-Packet Arrival:  # data packet of length l
-begin:
-  last_path++  # select next path
-  if(not_blocked(path[last_path])):
-        send packet over last_path
-  else:
-        goto begin: # try next path
-
+    def schedule(self, packet_len: int):
+        for p in self.paths:
+            if p != self.last_path and not p.blocked(packet_len):
+                self.last_path = p
+                return p
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-rr title="A simple Round Robin scheduler"}
 
@@ -328,9 +344,33 @@ window is open.
 
 ## Strict Priority
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class StrictPriority(Scheduler):
+    """ Chooses the first available path in the given order of paths. """
+
+    def schedule(self, packet_len: int):
+        for p in self.paths:
+            if not p.blocked(packet_len):
+                return p
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-strict-prio title="A simple Strict Priority scheduler"}
+
 [comment]: # (OB: Path 0 has a higher priority than path one, with congestion window)
 
-## Delay threshold
+## Delay Threshold
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@dataclass
+class DelayThreshold(Scheduler):
+    """ Chooses the first available path below a certain delay threshold. """
+    threshold: float
+
+    def schedule(self, packet_len: int):
+        for p in self.paths:
+            if p.srtt < self.threshold and not p.blocked(packet_len):
+                return p
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-delay-threshold title="A simple Delay Threshold scheduler"}
 
 [comment]: # (OB: Path 0 has a higher priority than path one, path one is used if packets has been delayed by more than threshold in transport entity)
 
@@ -353,6 +393,21 @@ satisfied:
 
 Among all the eligible paths, the scheduler will choose the path with the
 lowest RTT and transmit the segment with the new data on that path.
+{{fig-simple-low-rtt}} illustrates a simple lowest RTT scheduler which does not
+include fast reinjections.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class LowestRTTFirst(Scheduler):
+    """ Chooses the first available path with the lowest RTT. """
+
+    def schedule(self, packet_len: int):
+        # Sort paths by increasing SRTT
+        for p in sorted(self.paths, key=lambda path: path.srtt):
+            if not p.blocked(packet_len) \
+               and p.cc_state != 'recovery':
+                return p
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-simple-low-rtt title="A simple Lowest RTT First scheduler"}
 
 To handle head-of-line blocking situations when the paths have a large delay
 difference the scheduler uses a strategy of opportunistic retransmission and
@@ -374,6 +429,7 @@ This mechanism is called penalization and is achieved by dividing the congestion
 window by 2.
 
 [comment]: # (CP: pseudocode)
+[comment]: # (MP: The simulator currently lacks rtx, rcv_wnd and snd_wnd concepts)
 
 
 ## Out-of-order transmission for in-order arrival 
