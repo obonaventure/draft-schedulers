@@ -355,6 +355,12 @@ window is open.
 
 ## Strict Priority
 
+The Strict Priority scheduler's aim is to select paths based on a priority list.
+Some paths might go through networks that are more expensive to use than others.
+Then the idea is to select the path with the highest priority if it is available
+before looking at others by priority. This scheduler is described by the code
+shown in {{fig-strict-prio}}.
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class StrictPriority(Scheduler):
     """ Chooses the first available path in the given order of paths. """
@@ -365,6 +371,13 @@ class StrictPriority(Scheduler):
                 return p
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-strict-prio title="A simple Strict Priority scheduler"}
+
+This scheduler can face performance issues if, compared to others, paths with
+high priority accept a lot of data but delivered packets with a high latency.
+Typically if there are some bufferbloats on the path, the receiver will have to
+store packets for a long time in its buffers to ensure an in-order delivery. It
+is then recommended to cover these cases in the scheduler implementation with
+the help of the congestion control algorithm.
 
 [comment]: # (OB: Path 0 has a higher priority than path one, with congestion window)
 
