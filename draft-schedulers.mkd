@@ -382,8 +382,8 @@ class StrictPriority(Scheduler):
 
 This scheduler can face performance issues if, compared to others, paths with
 high priority accept a lot of data but delivered packets with a high latency.
-Typically if there are some bufferbloats on the path, the receiver will have to
-store packets for a long time in its buffers to ensure an in-order delivery. It
+When the path is experiencing bufferbloat, the receiver has to store packets for 
+a long time in its buffers to ensure an in-order delivery. It
 is then recommended to cover these cases in the scheduler implementation with
 the help of the congestion control algorithm.
 
@@ -395,7 +395,7 @@ the help of the congestion control algorithm.
 The Delay Threshold scheduler selects the first available path with a smoothed
 round-trip-time below a certain threshold. The goal is to keep the RTT of the
 multipath connection to a small value and avoid having the whole connection
-impacted by "bad" pathes. A prototype is shown in {{fig-delay-threshold}}.
+impacted by "bad" paths. A prototype is shown in {{fig-delay-threshold}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 @dataclass
