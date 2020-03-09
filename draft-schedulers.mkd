@@ -192,7 +192,7 @@ composed of two paths, a frequent deployment scenario for multipath transport.
 This does not restrict the proposed schedulers to using only two paths.
 Implementations are encouraged to support more than 2 paths. We leave the
 discussion on how to adapt these abstract schedulers to concrete multipath
-transport protocols in companion drafts {{TODO}}.
+transport protocols in future drafts.
 
 
 # An abstract multipath transport protocol {#abstract}
