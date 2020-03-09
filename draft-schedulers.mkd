@@ -173,10 +173,12 @@ which render the re-assembly superfluous or lowering at least its effort.
 In this document, we document a series of multipath packet schedulers that
 are known to provide performance that matches well the requirements of specific
 applications. To describe these packet schedulers, we assume an
-abstract transport that is briefly presented in {{abstract}}. We then describe
-the different schedulers in {{schedulers}}. To keep the description as simple
-and intuitive as possible, we assume here multipath connections that are
-composed of two paths, a frequent deployment scenario for multipath transport.
+abstract transport that is briefly presented in {{abstract}}. In {{challenges}}
+we describe the challenges and constraints around a multipath scheduler.
+Finally, we describe the different schedulers in {{schedulers}}. To keep the
+description as simple and intuitive as possible, we assume here multipath
+connections that are composed of two paths, a frequent deployment scenario for
+multipath transport.
 This does not restrict the proposed schedulers to using only two paths.
 Implementations are encouraged to support more than 2 paths. We leave the
 discussion on how to adapt these abstract schedulers to concrete multipath
@@ -193,8 +195,9 @@ documents.
 
 Furthermore, we assume that there are exactly two active paths for
 the presentation of the packet schedulers. We consider that a path is active as
-long as it supports the transmission of packets. A Multipath TCP subflow over
-which any of the FIN or RST flags were set is not considered as an active path.
+long as it supports the transmission of packets. Meaning, A Multipath TCP
+subflow TCP segment with the FIN or RST flags set is not considered as an active
+path.
 Other constraints are possible on whether or not a path is active. These are
 specific to the scheduler and vary depending on the goal of the scheduler. An
 example of these is that when a path has experienced a certain number N of
@@ -221,21 +224,13 @@ Segment Size that is negotiated at connection establishment.
 It may also contain some information that is specific to the
 application (e.g. total amount of data sent or received) and information about
 non-active flows. At the path level, we expect that the multipath transport
-protocol will maintain a accurate estimation of the round-trip-time over that
+protocol will maintain an accurate estimation of the round-trip-time over that
 path, possibly a send/receive window, per path MTU information, the state of the
 congestion controller, and optionally information that is specific to the
 application or the packet scheduler (e.g. priority for one path over another
 one).
 
 [comment]: # (To be continued and updated)
-
-# Conventions and Definitions
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in BCP 14
-{{RFC2119}}{{RFC8174}} when, and only when, they appear in all capitals,
-as shown here.
 
 # Packet scheduling challenges {#challenges}
 
@@ -260,7 +255,10 @@ Achieving high throughput is another goal of many applications. Streaming applic
 often require a minimum bit rate to sustain playback. The scheduler should try to
 achieve this bit rate to allow for a flawless streaming experience. Beyond that,
 adaptive streaming requires also a more stable throughput experience to ensure
-that the bit rate of the video stream is consistent.
+that the bit rate of the video stream is consistent. When sending traffic
+over multiple paths the bit rate can experience more variance and thus the
+scheduler for such a streaming application needs to take precautions to ensure
+a smooth experience.
 
 Finally, transport protocols impose a receive-window that signals to the sender
 how much data the application is willing to receive. When the paths have a large
@@ -411,8 +409,8 @@ receive-window, this scheduler deploys a fast reinjection mechanism to quickly
 recover from the head-of-line blocking.
 
 At each round, the scheduler iterates over the list of paths that are eligible
-for transmission. To decide whether or not a path a few conditions need to be
-satisfied:
+for transmission. To decide whether or not a path is active, a few conditions
+need to be satisfied:
 
  - The congestion window needs to provide enough space for the segment
  - The path is not in fast-recovery or experiencing retransmission timeouts
@@ -458,7 +456,7 @@ window by 2.
 [comment]: # (MP: The simulator currently lacks rtx, rcv_wnd and snd_wnd concepts)
 
 
-## Out-of-order transmission for in-order arrival
+[comment:] ## Out-of-order transmission for in-order arrival
 
 [comment]: # (MA: overload fastest path to match latency of slower path; avoids ideally re-ordering)
 
