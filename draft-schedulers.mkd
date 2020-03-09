@@ -98,6 +98,11 @@ informative:
      - ins: O. Bonaventure
     title: SMAPP &#58; Towards Smart Multipath TCP-enabled APPlications
     seriesinfo: CoNEXT '15&#58; Proceedings of the 11th ACM Conference on Emerging Networking Experiments and Technologies
+  MultipathSim:
+    author:
+      - ins: M. Piraux
+    title: Multipath simulator for the IETF draft Multipath schedulers
+    target: https://github.com/obonaventure/draft-schedulers/blob/scheduler_simulator.py
   TODO:
     author:
      - ins: To be provided
@@ -319,9 +324,10 @@ attributes:
  - blocked(l): A function indicating whether a packet of length l would be
    rejected by the congestion controller.
 
-The schedulers presented can be executed in a simulator {{TODO}} implementing
-the abstract multipath protocol presented in {{abstract}}. It can be used to
-simulate a file transfer between a client and a server over multiple paths.
+The schedulers presented can be executed in a simulator {{MultipathSim}}
+implementing the abstract multipath protocol presented in {{abstract}}. It can
+be used to simulate a file transfer between a client and a server over multiple
+paths.
 
 ## Round-Robin
 
