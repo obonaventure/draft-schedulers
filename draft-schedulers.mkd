@@ -332,7 +332,7 @@ paths.
 ## Round-Robin
 
 We use the Round-Robin scheduler as a simple example to illustrate how a packet
-scheduler can be specified, but do not recommend its usage. Experiments with
+scheduler can be specified, but we do not recommend its usage. Experiments with
 Multipath TCP {{ACMCS14}} indicate that it does not provide good performance.
 
 This packet scheduler uses one additional state at the connection level:
@@ -343,12 +343,14 @@ defined by the code shown in {{fig-rr}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class RoundRobin(Scheduler):
-    """ Chooses an available path in a round-robin manner between two paths. """
+    """ Chooses an available path in a round-robin manner between multiple paths. """
     last_path: Optional[Path] = None
 
     def schedule(self, packet_len: int):
-        for p in self.paths:
-            if p != self.last_path and not p.blocked(packet_len):
+        next_idx = self.paths.index(self.last_path) + 1 if self.last_path in self.paths else 0
+        sorted_paths = self.paths[next_idx:] + self.paths[:next_idx]
+        for p in sorted_paths:
+            if not p.blocked(packet_len):
                 self.last_path = p
                 return p
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -361,20 +363,39 @@ window is open.
 
 ## Strict Priority
 
+The Strict Priority scheduler's aim is to select paths based on a priority list.
+Some paths might go through networks that are more expensive to use than others.
+Then the idea is to select the path with the highest priority if it is available
+before looking at others by priority. This scheduler is described by the code
+shown in {{fig-strict-prio}}.
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class StrictPriority(Scheduler):
-    """ Chooses the first available path in the given order of paths. """
+    """ Chooses the first available path in a priority list of paths. """
 
     def schedule(self, packet_len: int):
-        for p in self.paths:
+        for p in sorted(self.paths, key=lambda path: path.priority, reverse=True):
             if not p.blocked(packet_len):
                 return p
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-strict-prio title="A simple Strict Priority scheduler"}
 
+This scheduler can face performance issues if, compared to others, paths with
+high priority accept a lot of data but delivered packets with a high latency.
+Typically if there are some bufferbloats on the path, the receiver will have to
+store packets for a long time in its buffers to ensure an in-order delivery. It
+is then recommended to cover these cases in the scheduler implementation with
+the help of the congestion control algorithm.
+
 [comment]: # (OB: Path 0 has a higher priority than path one, with congestion window)
+[comment]: # (MB: the paths are now sorted by priority to make it clearer)
 
 ## Delay Threshold
+
+The Delay Threshold scheduler selects the first available path with a smoothed
+round-trip-time below a certain threshold. The goal is to keep the RTT of the
+multipath connection to a small value and avoid having the whole connection
+impacted by "bad" pathes. A prototype is shown in {{fig-delay-threshold}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 @dataclass
@@ -388,6 +409,8 @@ class DelayThreshold(Scheduler):
                 return p
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-delay-threshold title="A simple Delay Threshold scheduler"}
+
+This kind of protection can of course be added to other existing schedulers.
 
 [comment]: # (OB: Path 0 has a higher priority than path one, path one is used if packets has been delayed by more than threshold in transport entity)
 
