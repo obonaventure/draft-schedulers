@@ -409,7 +409,7 @@ receive-window, this scheduler deploys a fast reinjection mechanism to quickly
 recover from the head-of-line blocking.
 
 At each round, the scheduler iterates over the list of paths that are eligible
-for transmission. To decide whether or not a path is active, a few conditions
+for transmission. To decide whether or not a path is eligible, a few conditions
 need to be satisfied:
 
  - The congestion window needs to provide enough space for the segment
