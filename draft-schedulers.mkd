@@ -363,10 +363,10 @@ shown in {{fig-strict-prio}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class StrictPriority(Scheduler):
-    """ Chooses the first available path in the given order of paths. """
+    """ Chooses the first available path in a priority list of paths. """
 
     def schedule(self, packet_len: int):
-        for p in self.paths:
+        for p in sorted(self.paths, key=lambda path: path.priority, reverse=True):
             if not p.blocked(packet_len):
                 return p
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -380,6 +380,7 @@ is then recommended to cover these cases in the scheduler implementation with
 the help of the congestion control algorithm.
 
 [comment]: # (OB: Path 0 has a higher priority than path one, with congestion window)
+[comment]: # (MB: the paths are now sorted by priority to make it clearer)
 
 ## Delay Threshold
 
