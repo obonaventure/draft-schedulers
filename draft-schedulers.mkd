@@ -57,18 +57,6 @@ informative:
   I-D.tuexen-tsvwg-sctp-multipath:
   I-D.deconinck-quic-multipath:
   I-D.amend-tsvwg-multipath-dccp:
-  TS23501:
-    author:
-      - ins: 3GPP (3rd Generation Partnership Project)
-    title: Technical Specification Group Services and System Aspects; System Architecture for the 5G System; Stage 2 (Release 16)
-    date: 2019
-    target: https://www.3gpp.org/ftp/Specs/archive/23_series/23.501/
-  IETFJ16:
-    author:
-      - ins: O. Bonaventure
-      - ins: S. Seo
-    title: Multipath TCP Deployment
-    seriesinfo: IETF Journal, Fall 2016
   ACMCS14:
     author:
      - ins: C. Paasch
@@ -103,11 +91,6 @@ informative:
       - ins: M. Piraux
     title: Multipath simulator for the IETF draft Multipath schedulers
     target: https://github.com/obonaventure/draft-schedulers/blob/scheduler_simulator.py
-  TODO:
-    author:
-     - ins: To be provided
-    title: Some title
-    seriesinfo: somewhere
 
 --- abstract
 
@@ -173,10 +156,10 @@ The packet scheduler is the generic term for the algorithm that selects the
 path that will be used to transmit each packet on a multipath connection. This
 logic is obviously only useful when there are at least two active paths for
 a given multipath transport connection. A variety of packet schedulers have
-been proposed in the literature {{TODO}} and implemented in multipath transport
-protocols. Experience with multipath transport protocols shows that the
-packet scheduler can have a huge impact on the performance achieved by
-such protocols.
+been proposed in the literature {{ACMCS14}} and implemented in multipath
+transport protocols. Experience with multipath transport protocols shows that
+the packet scheduler can have a huge impact on the performance achieved by such
+protocols.
 
 Packet re-assembly or re-ordering in multipath transport has the functionality
 to equalize the effect of packet scheduling across paths with different
@@ -385,7 +368,7 @@ class StrictPriority(Scheduler):
 
 This scheduler can face performance issues if, compared to others, paths with
 high priority accept a lot of data but delivered packets with a high latency.
-When the path is experiencing bufferbloat, the receiver has to store packets for 
+When the path is experiencing bufferbloat, the receiver has to store packets for
 a long time in its buffers to ensure an in-order delivery. It
 is then recommended to cover these cases in the scheduler implementation with
 the help of the congestion control algorithm.
@@ -454,7 +437,7 @@ class LowestRTTFirst(Scheduler):
 
 To handle head-of-line blocking situations when the paths have a large delay
 difference the scheduler uses a strategy of opportunistic retransmission and
-path penalization as described in {{NSDI12}.
+path penalization as described in {{NSDI12}}.
 
 Opportunistic retransmission kicks in whenever a path is eligible for transmission
 but the receive-window advertised by the receiver prevents the sender from transmitting
@@ -475,7 +458,7 @@ window by 2.
 [comment]: # (MP: The simulator currently lacks rtx, rcv_wnd and snd_wnd concepts)
 
 
-## Out-of-order transmission for in-order arrival 
+## Out-of-order transmission for in-order arrival
 
 [comment]: # (MA: overload fastest path to match latency of slower path; avoids ideally re-ordering)
 
