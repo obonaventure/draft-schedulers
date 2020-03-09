@@ -454,7 +454,7 @@ class LowestRTTFirst(Scheduler):
 
 To handle head-of-line blocking situations when the paths have a large delay
 difference the scheduler uses a strategy of opportunistic retransmission and
-path penalization as described in {{NSDI12}.
+path penalization as described in {{NSDI12}}.
 
 Opportunistic retransmission kicks in whenever a path is eligible for transmission
 but the receive-window advertised by the receiver prevents the sender from transmitting
