@@ -173,10 +173,10 @@ The packet scheduler is the generic term for the algorithm that selects the
 path that will be used to transmit each packet on a multipath connection. This
 logic is obviously only useful when there are at least two active paths for
 a given multipath transport connection. A variety of packet schedulers have
-been proposed in the literature {{TODO}} and implemented in multipath transport
-protocols. Experience with multipath transport protocols shows that the
-packet scheduler can have a huge impact on the performance achieved by
-such protocols.
+been proposed in the literature {{ACMCS14}} and implemented in multipath
+transport protocols. Experience with multipath transport protocols shows that
+the packet scheduler can have a huge impact on the performance achieved by such
+protocols.
 
 Packet re-assembly or re-ordering in multipath transport has the functionality
 to equalize the effect of packet scheduling across paths with different
