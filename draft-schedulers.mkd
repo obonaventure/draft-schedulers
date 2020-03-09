@@ -343,11 +343,14 @@ defined by the code shown in {{fig-rr}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class RoundRobin(Scheduler):
-    """ Chooses an available path in a round-robin manner between multiple paths. """
+    """ Chooses an available path in a round-robin manner. """
     last_path: Optional[Path] = None
 
     def schedule(self, packet_len: int):
-        next_idx = self.paths.index(self.last_path) + 1 if self.last_path in self.paths else 0
+        if self.last_path in self.paths:
+            next_idx = self.paths.index(self.last_path) + 1
+        else:
+            next_idx = 0
         sorted_paths = self.paths[next_idx:] + self.paths[:next_idx]
         for p in sorted_paths:
             if not p.blocked(packet_len):
@@ -374,7 +377,7 @@ class StrictPriority(Scheduler):
     """ Chooses the first available path in a priority list of paths. """
 
     def schedule(self, packet_len: int):
-        for p in sorted(self.paths, key=lambda path: path.priority, reverse=True):
+        for p in sorted(self.paths, key=lambda p: p.priority, reverse=True):
             if not p.blocked(packet_len):
                 return p
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
