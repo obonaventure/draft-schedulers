@@ -385,7 +385,7 @@ class StrictPriority(Scheduler):
 
 This scheduler can face performance issues if, compared to others, paths with
 high priority accept a lot of data but delivered packets with a high latency.
-When the path is experiencing bufferbloat, the receiver has to store packets for 
+When the path is experiencing bufferbloat, the receiver has to store packets for
 a long time in its buffers to ensure an in-order delivery. It
 is then recommended to cover these cases in the scheduler implementation with
 the help of the congestion control algorithm.
@@ -475,7 +475,7 @@ window by 2.
 [comment]: # (MP: The simulator currently lacks rtx, rcv_wnd and snd_wnd concepts)
 
 
-## Out-of-order transmission for in-order arrival 
+## Out-of-order transmission for in-order arrival
 
 [comment]: # (MA: overload fastest path to match latency of slower path; avoids ideally re-ordering)
 
