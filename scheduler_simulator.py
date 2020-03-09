@@ -229,7 +229,7 @@ class Path:
         sending_time = self._send_times[packet]
         rtt_estimate = time - sending_time
 
-        if self.srtt is 0:
+        if self.srtt == 0:
             self.srtt = rtt_estimate
         else:
             self.srtt = ((1 / 8) * rtt_estimate) + ((7 / 8) * self.srtt)
