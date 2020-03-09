@@ -396,12 +396,14 @@ class Simulator:
 
 
 class RoundRobin(Scheduler):
-    """ Chooses an available path in a round-robin manner between two paths. """
+    """ Chooses an available path in a round-robin manner between multiple paths. """
     last_path: Optional[Path] = None
 
     def schedule(self, packet_len: int) -> Optional[Path]:
-        for p in self.paths:
-            if p != self.last_path and not p.blocked(packet_len):
+        next_idx = self.paths.index(self.last_path) + 1 if self.last_path in self.paths else 0
+        sorted_paths = self.paths[next_idx:] + self.paths[:next_idx]
+        for p in sorted_paths:
+            if not p.blocked(packet_len):
                 self.last_path = p
                 return p
 
