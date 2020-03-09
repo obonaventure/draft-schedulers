@@ -383,6 +383,11 @@ the help of the congestion control algorithm.
 
 ## Delay Threshold
 
+The Delay Threshold scheduler selects the first available path with a smoothed
+round-trip-time below a certain threshold. The goal is to keep the RTT of the
+multipath connection to a small value and avoid having the whole connection
+impacted by "bad" pathes. A prototype is shown in {{fig-delay-threshold}}.
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 @dataclass
 class DelayThreshold(Scheduler):
@@ -395,6 +400,8 @@ class DelayThreshold(Scheduler):
                 return p
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-delay-threshold title="A simple Delay Threshold scheduler"}
+
+This kind of protection can of course be added to other existing schedulers.
 
 [comment]: # (OB: Path 0 has a higher priority than path one, path one is used if packets has been delayed by more than threshold in transport entity)
 
