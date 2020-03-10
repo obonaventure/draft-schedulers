@@ -50,8 +50,6 @@ normative:
 
 informative:
   RFC6824:
-  RFC2119:
-  RFC8174:
   RFC6356:
   RFC6298:
   I-D.tuexen-tsvwg-sctp-multipath:
