@@ -386,16 +386,18 @@ class WeightedRoundRobin(Scheduler):
     def schedule(self, packet_len: int) -> Optional[Path]:
         next_idx = (self.last_idx + 1) % len(self.distribution)
         sorted_paths = self.distribution[next_idx:] + self.distribution[:next_idx]
-        for p in sorted_paths:
-            self.last_idx = (self.last_idx + 1) % len(self.distribution)
+        for i, p in enumerate(sorted_paths):
             if not p.blocked(packet_len):
+                self.last_idx = (self.last.idx + i) % len(self.distribution)
                 return p
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-wrr title="A Weighted Round Robin scheduler"}
 
 This scheduler does not distinguish between the different types of packets. It
 iterates over the available paths following the given distribution and sends
-over the ones whose congestion window is open.
+over the ones whose congestion window is open. A variant of this algorithm
+could maintain a deficit per path and consider the length of packets when
+distributing them.
 
 ## Strict Priority
 
