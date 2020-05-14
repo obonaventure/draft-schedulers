@@ -416,11 +416,10 @@ class WeightedRoundRobin(Scheduler):
     def schedule(self, packet_len: int) -> Optional[Path]:
         next_idx = (self.last_idx + 1) % len(self.distribution)
         sorted_paths = self.distribution[next_idx:] + self.distribution[:next_idx]
-        for p in sorted_paths:
-            self.last_idx = (self.last_idx + 1) % len(self.distribution)
+        for i, p in enumerate(sorted_paths):
             if not p.blocked(packet_len):
+                self.last_idx = (self.last.idx + i) % len(self.distribution)
                 return p
-
 
 class StrictPriority(Scheduler):
     """ Chooses the first available path in a priority list of paths. """
