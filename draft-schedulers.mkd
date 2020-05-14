@@ -316,8 +316,7 @@ Multipath TCP {{ACMCS14}} indicate that it does not provide good performance.
 
 This packet scheduler uses one additional state at the connection level:
 last_path. This stores the identifier of the last path that was used to send a
-packet. We assume that the paths are identified by an integer. The scheduler is
-defined by the code shown in {{fig-rr}}.
+packet. The scheduler is defined by the code shown in {{fig-rr}}.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -342,6 +341,42 @@ This scheduler does not distinguish between the different types of packets. It
 iterates over the available paths and sends over the ones whose congestion
 window is open.
 
+## Weighted Round-Robin
+
+The Weighted Round-Robin scheduler is a more advanced version of the Round-Robin
+scheduler. It allows specifying a particular distribution of paths. This can be
+used to non-uniformly spread packets over paths.
+
+This packet scheduler adds two states:
+
+- distribution: A list containing the distribution of paths to consider. Paths
+  to which more importance is given will be present several times in the list.
+  The ordering of the list allows to choose whether interleaved or burst sending
+  is preferred.
+- last_idx: It stores the index in the distribution of the last path used to
+  send a packet.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class WeightedRoundRobin(Scheduler):
+    """ Chooses an available path in a following a fixed distribution. """
+    distribution: List[Path]
+    last_idx: int = -1
+
+    def schedule(self, packet_len: int) -> Optional[Path]:
+        next_idx = (self.last_idx + 1) % len(self.distribution)
+        sorted_paths = self.distribution[next_idx:] + self.distribution[:next_idx]
+        for i, p in enumerate(sorted_paths):
+            if not p.blocked(packet_len):
+                self.last_idx = (self.last.idx + i) % len(self.distribution)
+                return p
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-wrr title="A Weighted Round Robin scheduler"}
+
+This scheduler does not distinguish between the different types of packets. It
+iterates over the available paths following the given distribution and sends
+over the ones whose congestion window is open. A variant of this algorithm
+could maintain a deficit per path and consider the length of packets when
+distributing them.
 
 ## Strict Priority
 
