@@ -445,7 +445,7 @@ class LowestRTTFirst(Scheduler):
     """ Chooses the first available path with the lowest RTT. """
 
     def schedule(self, packet_len: int) -> Optional[Path]:
-        # Sort paths by increasing SRTT
+        # Sort paths by ascending SRTT
         for p in sorted(self.paths, key=lambda path: path.srtt):
             if not p.blocked(packet_len) and p.cc.state is not CCState.recovery:
                 return p
