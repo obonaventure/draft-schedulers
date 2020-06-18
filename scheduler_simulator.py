@@ -196,6 +196,7 @@ class Path:
     # Attributes for scheduling
     srtt: float = 0
     priority: int = 10
+    backup: bool = False
 
     # Private attributes
     _send_times: Dict[Packet, float] = field(default_factory=dict)
@@ -448,6 +449,18 @@ class LowestRTTFirst(Scheduler):
         # Sort paths by increasing SRTT
         for p in sorted(self.paths, key=lambda path: path.srtt):
             if not p.blocked(packet_len) and p.cc.state is not CCState.recovery:
+                return p
+
+
+class Backup(Scheduler):
+    """ Chooses the first available non backup path if there are backup paths. """
+
+    def schedule(self, packet_len: int) -> Optional[Path]:
+        paths = [p for p in self.paths if not p.backup]
+        if not paths:
+            paths = self.paths # only backup paths or none
+        for p in self.paths:
+            if not p.blocked(packet_len):
                 return p
 
 
