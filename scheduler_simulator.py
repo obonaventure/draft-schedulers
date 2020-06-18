@@ -451,6 +451,18 @@ class LowestRTTFirst(Scheduler):
                 return p
 
 
+class PriorityAndLowestRTTFirst(Scheduler):
+    """ Chooses the first available path with the highest priority and then the lowest RTT. """
+
+    def schedule(self, packet_len: int) -> Optional[Path]:
+        # Sort paths by ascending priority (2nd sort) and then ascending SRTT (1st sort)
+        paths = sorted(self.paths, key=lambda path: path.srtt)
+        paths = sorted(paths, key=lambda path: path.priority, reverse=True)
+        for p in sorted(self.paths, key=lambda path: path.srtt):
+            if not p.blocked(packet_len) and p.cc.state is not CCState.recovery:
+                return p
+
+
 if __name__ == "__main__":
     MSS = 500
 
