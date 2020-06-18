@@ -432,7 +432,7 @@ This kind of protection can of course be added to other existing schedulers.
 [comment]: # (OB: Path 0 has a higher priority than path one, path one is used if packets has been delayed by more than threshold in transport entity)
 
 
-## Lowest round-trip-time first
+## Lowest Round-Trip-Time First
 
 
 The Lowest round-trip-time first scheduler's goal is to minimize latency for
