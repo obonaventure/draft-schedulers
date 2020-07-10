@@ -458,7 +458,7 @@ class PriorityAndLowestRTTFirst(Scheduler):
         # Sort paths by ascending priority (2nd sort) and then ascending SRTT (1st sort)
         paths = sorted(self.paths, key=lambda path: path.srtt)
         paths = sorted(paths, key=lambda path: path.priority, reverse=True)
-        for p in sorted(self.paths, key=lambda path: path.srtt):
+        for p in paths:
             if not p.blocked(packet_len) and p.cc.state is not CCState.recovery:
                 return p
 
