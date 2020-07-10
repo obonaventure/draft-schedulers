@@ -53,8 +53,9 @@ MP-DCCP
 reinjection
 reinjections
 fig-strict-prio
-fig-delay-threshold
+fig-rtt-threshold
 fig-simple-low-rtt
+fig-priority-and-lowest-rtt-first
 i.e.
 srtt
 cc_state
