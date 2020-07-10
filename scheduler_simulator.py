@@ -431,8 +431,8 @@ class StrictPriority(Scheduler):
 
 
 @dataclass
-class DelayThreshold(Scheduler):
-    """ Chooses the first available path below a certain delay threshold. """
+class RTTThreshold(Scheduler):
+    """ Chooses the first available path below a certain RTT threshold. """
     threshold: float
 
     def schedule(self, packet_len: int) -> Optional[Path]:

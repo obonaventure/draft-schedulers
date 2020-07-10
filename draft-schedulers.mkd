@@ -407,17 +407,18 @@ the help of the congestion control algorithm.
 [comment]: # (OB: Path 0 has a higher priority than path one, with congestion window)
 [comment]: # (MB: the paths are now sorted by priority to make it clearer)
 
-## Delay Threshold {#delay-threshold}
+## Round-Trip-Time Threshold {#rtt-threshold}
 
-The Delay Threshold scheduler selects the first available path with a smoothed
-round-trip-time below a certain threshold. The goal is to keep the RTT of the
-multipath connection to a small value and avoid having the whole connection
-impacted by "bad" paths. A prototype is shown in {{fig-delay-threshold}}.
+The Round-Trip-Time Threshold scheduler selects the first available path with a
+smoothed round-trip-time below a certain threshold. The goal is to keep the RTT
+of the multipath connection to a small value and avoid having the whole
+connection impacted by "bad" paths. A prototype is shown in
+{{fig-rtt-threshold}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 @dataclass
-class DelayThreshold(Scheduler):
-    """ Chooses the first available path below a certain delay threshold. """
+class RTTThreshold(Scheduler):
+    """ Chooses the first available path below a certain RTT threshold. """
     threshold: float
 
     def schedule(self, packet_len: int):
@@ -425,11 +426,9 @@ class DelayThreshold(Scheduler):
             if p.srtt < self.threshold and not p.blocked(packet_len):
                 return p
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-delay-threshold title="A simple Delay Threshold scheduler"}
+{: #fig-rtt-threshold title="A simple Round-Trip-Time Threshold scheduler"}
 
 This kind of protection can of course be added to other existing schedulers.
-
-[comment]: # (OB: Path 0 has a higher priority than path one, path one is used if packets has been delayed by more than threshold in transport entity)
 
 
 ## Lowest Round-Trip-Time First {#lowest-rtt}
@@ -529,10 +528,10 @@ fully used when the sender is limited by the global sending window of the
 multipath connection.
 
 For this kind of scheduler, it could be interesting to also associate the
-benefits associated to a "Delay Threshold" scheduler described in
-{{delay-threshold}}. This scheduler prevents being too impacted by links having
-a higher priority but a very high RTT while other paths, with a lower priority
-and a lower RTT, can be used. It is a matter of qualifying what is important:
+benefits associated to a "Round-Trip-Time Threshold" scheduler described in
+{{rtt-threshold}}. This scheduler prevents being too impacted by links having a
+higher priority but a very high RTT while other paths, with a lower priority and
+a lower RTT, can be used. It is a matter of qualifying what is important:
 maximising the use of paths over reducing the latency and probably the total
 bandwidth as well if the sender and/or the receiver are limited by congestion
 windows.
