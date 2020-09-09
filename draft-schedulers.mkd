@@ -532,16 +532,16 @@ benefits associated to a "Round-Trip-Time Threshold" scheduler described in
 {{rtt-threshold}}. This scheduler prevents being too impacted by links having a
 higher priority but a very high RTT while other paths, with a lower priority and
 a lower RTT, can be used. It is a matter of qualifying what is important:
-maximising the use of paths over reducing the latency and probably the total
+maximizing the use of paths over reducing the latency and probably the total
 bandwidth as well if the sender and/or the receiver are limited by congestion
 windows.
 
 It is also important to note that the penalization mechanism described in the
 "Lowest round-trip-time first" scheduler in {{lowest-rtt}} also needs to take
-into account the priority. If the goal is to maximise the use of some links over
+into account the priority. If the goal is to maximize the use of some links over
  others, links with a higher priority cannot be penalized over the ones with a
 lower priority. The consequence of this would be that links with higher priority
- are under used due to the penalisation.
+ are under used due to the penalization.
 
 
 
@@ -551,3 +551,12 @@ ASCII figure
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-ascii title="A simple figure"}
+
+--- back
+
+# Change log
+
+## Since draft-bonaventure-iccrg-schedulers-00
+
+* Renamed Delay Threshold to RTT Threshold
+* Added the Priority And Lowest RTT First scheduler
